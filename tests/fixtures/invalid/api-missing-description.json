@@ -1,0 +1,13 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "apis": [
+    {
+      "type": "openapi",
+      "url": "https://api.fernandfinch.example/openapi.json"
+    }
+  ]
+}
