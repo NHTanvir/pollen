@@ -1,0 +1,23 @@
+{
+  "protocol_version": "0.4",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "agent": {
+    "protocols": [
+      {
+        "type": "ucp",
+        "endpoint": "https://fernandfinch.example/.well-known/ucp"
+      }
+    ]
+  },
+  "web": {},
+  "extensions": {
+    "ucp": [
+      {
+        "version": "1"
+      }
+    ]
+  }
+}

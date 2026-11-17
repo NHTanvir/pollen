@@ -6,7 +6,7 @@ import { after, describe, it } from "node:test";
 import { check, PENALTIES, resolveTarget, score, TargetError, validateDocument } from "../src/check.js";
 import { RULES } from "../src/rules/index.js";
 import type { RuleResult } from "../src/types.js";
-import { WELL_KNOWN, base, live, make } from "./helpers.js";
+import { DOMAIN, ORIGIN, WELL_KNOWN, base, failedErrors, fakeFetcher, live, make, offline, result } from "./helpers.js";
 
 const dir = mkdtempSync(join(tmpdir(), "pollen-check-"));
 after(() => rmSync(dir, { recursive: true, force: true }));
@@ -122,5 +122,51 @@ describe("reports", () => {
     it("check organization.domain against servedHost when one is given", () => {
         const report = validateDocument(base(), { servedHost: "other.example" });
         assert.equal(report.results.find((x) => x.id === "organization.domain-host")?.status, "fail");
+    });
+});
+
+describe("documents in another version", () => {
+    // The shape of a 0.4 document: its agent entry has no description, which only 1.0 requires.
+    const draft = () => ({
+        protocol_version: "0.4",
+        organization: { name: "Fern & Finch Bakery", domain: DOMAIN },
+        agent: { protocols: [{ type: "ucp", endpoint: `${ORIGIN}/.well-known/ucp` }] },
+        web: {},
+        extensions: { ucp: [{ version: "1" }] },
+    });
+
+    it("fail version.compatible, not the 1.0 field rules", () => {
+        const report = offline(draft());
+        assert.deepEqual(failedErrors(report), ["version.compatible"]);
+        const agent = result(report, "agent.protocols");
+        assert.equal(agent.status, "skip");
+        assert.match(agent.note!, /protocol_version is 0\.4/);
+        assert.equal(report.score, 75);
+    });
+
+    it("still run the rules every version shares", async () => {
+        const report = await live(draft());
+        for (const id of ["transport.https", "transport.status", "transport.final-url", "document.json", "version.present", "version.format"]) {
+            assert.equal(result(report, id).status, "pass", id);
+        }
+        assert.equal(result(report, "versions.supported").note, "No supported_versions (optional).");
+    });
+
+    it("don't fetch OAuth metadata", async () => {
+        const log: string[] = [];
+        const report = await check(DOMAIN, { fetcher: fakeFetcher({ [WELL_KNOWN]: { body: draft() } }, log) });
+        assert.deepEqual(log, [WELL_KNOWN]);
+        assert.match(result(report, "oauth.issuer").note!, /only to 1\.x documents/);
+    });
+
+    it("are checked against the 1.0 rules when the version is malformed", () => {
+        const report = offline({ ...draft(), protocol_version: "zero" });
+        assert.deepEqual(failedErrors(report), ["version.format", "agent.protocols"]);
+    });
+
+    it("pass when supported_versions lists a 1.x document, without checking this one's fields", () => {
+        const report = offline({ ...draft(), supported_versions: { "1.0": `${ORIGIN}/poppy/1.0.json` } });
+        assert.deepEqual(failedErrors(report), []);
+        assert.equal(result(report, "agent.protocols").status, "skip");
     });
 });

@@ -79,7 +79,7 @@ describe("pollen check", () => {
     it("exits 0 for a valid document", async () => {
         const { code, stdout } = await run(["check", VALID]);
         assert.equal(code, 0);
-        assert.match(stdout, /PASS {2}Personal Agents can use this document\./);
+        assert.match(stdout, /PASS {2}Poppy 1\.0 Personal Agents can use this document\./);
     });
 
     it("exits 1 for an invalid document and shows the fix", async () => {
