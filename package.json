@@ -1,0 +1,61 @@
+{
+  "name": "@nhtanvir/pollen",
+  "version": "0.1.0",
+  "description": "Validate and generate /.well-known/poppy.json for the Personal Agent Protocol (Poppy). A linter and doctor for Poppy adoption.",
+  "keywords": [
+    "poppy",
+    "personal-agent-protocol",
+    "poppy.json",
+    "well-known",
+    "ai-agents",
+    "agents",
+    "validator",
+    "linter",
+    "oauth",
+    "mcp",
+    "openapi",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "NHTanvir",
+  "homepage": "https://github.com/NHTanvir/pollen#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NHTanvir/pollen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NHTanvir/pollen/issues"
+  },
+  "type": "module",
+  "bin": {
+    "pollen": "dist/src/cli.js"
+  },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist/src",
+    "tests/fixtures",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepare": "npm run build",
+    "demo": "npm run build && node dist/src/cli.js demo"
+  },
+  "devDependencies": {
+    "@types/node": "18.19.130",
+    "typescript": "5.9.3"
+  }
+}
