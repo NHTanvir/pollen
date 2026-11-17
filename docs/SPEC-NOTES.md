@@ -19,6 +19,9 @@ Read on 2026-11-17, from the official repository at commit
 | Version list | https://github.com/personal-agent-protocol/personal-agent-protocol/blob/main/content/versions/versions.json |
 | Official `poppy.json` JSON Schema | https://github.com/personal-agent-protocol/personal-agent-protocol/blob/main/kit/company/schemas/poppy.schema.json |
 | Extensions index | https://personalagentprotocol.org/docs/1.0/extensions |
+| Operations extension | https://personalagentprotocol.org/docs/1.0/extensions/operations |
+| UCP extension | https://personalagentprotocol.org/docs/1.0/extensions/ucp |
+| Mediated Sign-In extension | https://personalagentprotocol.org/docs/1.0/extensions/mediated-sign-in |
 | Announcement (Sierra, 2026-10-06) | https://sierra.ai/blog/introducing-personal-agent-protocol |
 
 The protocol is licensed Apache-2.0. Pollen is a separate, independent MIT-licensed tool.
@@ -100,10 +103,14 @@ Unknown fields are allowed: Personal Agents ignore fields they don't recognize.
 | OpenAPI | `apis[].type = "openapi"`, `url` → OpenAPI 3.0/3.1 description | section 7 |
 | MCP | `apis[].type = "mcp"`, `url` → remote MCP server (Streamable HTTP, MCP 2025-06-18+) | section 7 |
 | Website | `web` object, optional `browser_session_endpoint` for browser join | section 6 |
-| Company agent | `agent.protocols[]`, the only defined type is `poppy` | section 8.1 |
+| Company agent | `agent.protocols[]`: type `poppy` (section 8), or `ucp` for UCP Ask (UCP extension 5) | section 8.1 |
 
 Personal Agents skip API types and conversation protocol types they don't recognize (7, 8.1), so
 an unknown type is a warning, not an error.
+
+A `ucp` entry in `agent.protocols` (UCP extension, section 5): the Company MUST also list the `ucp`
+extension, and the entry's `endpoint` is the Company's UCP profile,
+`https://{organization.domain}/.well-known/ucp` (UCP 2).
 
 ## Cross-field rules
 
@@ -138,6 +145,11 @@ Sign-in location is **not** a field of `poppy.json`. It's declared through stand
      `device_authorization_endpoint` required.
    - The Mediated Sign-In grant is `https://personalagentprotocol.org/grant/mediated-sign-in`.
 
+3. Scopes: a Company that offers sign-in SHOULD list every scope a Personal Agent can request in
+   `scopes_supported`, in the issuer's metadata, the protected resource metadata, or both (3.2).
+   Mediated Sign-In scopes SHOULD be there too (Mediated Sign-In 2). Pollen warns about scopes named
+   in `poppy.json` that neither lists.
+
 Pollen checks these for live URLs (skip with `--skip-oauth`). For local files they're skipped,
 because there's no host to fetch them from.
 
@@ -152,9 +164,21 @@ because there's no host to fetch them from.
   `grant_type`, `scope`, `client_id`, `client_secret`, `client_assertion`,
   `client_assertion_type`, `resource`, `sign_in_id` or `one_time_code`.
 - Mediated Sign-In is transitional: the roadmap plans to remove it on 2027-03-17 and prefers Direct
-  Sign-In.
+  Sign-In. Its issuer lists `https://personalagentprotocol.org/grant/mediated-sign-in` in
+  `grant_types_supported` (Mediated Sign-In 2).
+- Operations (Operations 2): an entry with an `endpoint` means the website returns operations, and
+  the Company MUST then list `web.browser_session_endpoint`, because only a browser joined to a
+  Session gets operations. The extension is used only when the Company lists `version` `"3"`.
+- More generally, an extension is used only at a version both sides support, so a defined extension
+  listed without its 1.0 version is ignored by 1.0 Personal Agents (Pollen warns).
 
 ## Versions (section 3.4)
 
 - Each `supported_versions` URL MUST be HTTPS on the host that served `poppy.json`.
 - Keys are `major.minor`, and name versions *other* than `protocol_version`.
+
+## Score
+
+Not part of the spec; Pollen's own measure. The score starts at 100. Each failed error rule costs
+25 points and each failed warning 5, down to 0. A missing or unreadable document scores 0. Any
+failed error rule means FAIL (exit code 1), whatever the score.
