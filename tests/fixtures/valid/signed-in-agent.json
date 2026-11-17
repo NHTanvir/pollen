@@ -1,0 +1,44 @@
+{
+  "protocol_version": "1.0",
+  "supported_versions": {
+    "0.4": "https://orbit.example/poppy/0.4.json"
+  },
+  "organization": {
+    "name": "Orbit Air",
+    "domain": "orbit.example"
+  },
+  "auth": {
+    "issuer": "https://auth.orbit.example",
+    "scopes": {
+      "trips:read": "See your trips, seats, and bags",
+      "trips:write": "Change or cancel your trips",
+      "poppy:browser-sign-in": "Use the website signed in, with the other access you approve"
+    },
+    "scope_hints": {
+      "trips:read": { "changes": "none", "personal_data": true },
+      "trips:write": { "changes": "irreversible", "personal_data": true }
+    }
+  },
+  "agent": {
+    "protocols": [
+      {
+        "type": "poppy",
+        "endpoint": "https://api.orbit.example/poppy/conversations",
+        "description": "Changes to trips, seats, and bags",
+        "access": "signed_in"
+      }
+    ]
+  },
+  "web": {
+    "browser_session_endpoint": "https://orbit.example/poppy/browser-session"
+  },
+  "extensions": {
+    "operations": [
+      { "version": "3", "endpoint": "https://orbit.example/poppy/operations" }
+    ],
+    "links": [{ "version": "1" }],
+    "orbit.example/seat-map": [
+      { "version": "1", "endpoint": "https://api.orbit.example/poppy/seat-map" }
+    ]
+  }
+}
