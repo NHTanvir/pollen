@@ -178,6 +178,7 @@ describe("runInit", () => {
         assert.equal(validateDocument(readFileSync(out, "utf8"), { servedHost: "orbit.example" }).score, 100);
         assert.match(output.text(), /score 100\/100/);
         assert.match(output.text(), /Serve it at https:\/\/orbit\.example\/\.well-known\/poppy\.json/);
+        assert.match(output.text(), /npx github:NHTanvir\/pollen check orbit\.example/);
     });
 
     it("won't overwrite a file without --force", async () => {

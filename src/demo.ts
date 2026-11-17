@@ -76,6 +76,6 @@ export function runDemo(options: { color: boolean; write: (text: string) => void
         return 1;
     }
     out(`All ${total} examples behaved as expected. Now check your own site:`);
-    out(`  npx @nhtanvir/pollen check your-domain.com`);
+    out(`  npx github:NHTanvir/pollen check your-domain.com`);
     return 0;
 }

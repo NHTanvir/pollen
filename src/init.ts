@@ -199,9 +199,9 @@ export async function runInit(options: InitOptions): Promise<number> {
         say(`  2. Publish https://${answers.domain}${PROTECTED_RESOURCE_PATH}:`);
         say(`     { "resource": "https://${answers.domain}", "authorization_servers": ["${answers.issuer}"] }`);
         say(`     and list "https://${answers.domain}" in your issuer's protected_resources.`);
-        say(`  3. Check it: npx @nhtanvir/pollen check ${answers.domain}`);
+        say(`  3. Check it: npx github:NHTanvir/pollen check ${answers.domain}`);
     } else {
-        say(`  2. Check it: npx @nhtanvir/pollen check ${answers.domain}`);
+        say(`  2. Check it: npx github:NHTanvir/pollen check ${answers.domain}`);
     }
     return report.ok ? 0 : 1;
 }
