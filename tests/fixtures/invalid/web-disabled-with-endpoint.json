@@ -1,0 +1,18 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "apis": [
+    {
+      "type": "openapi",
+      "url": "https://api.fernandfinch.example/openapi.json",
+      "description": "Orders and pickups"
+    }
+  ],
+  "web": {
+    "disabled": true,
+    "browser_session_endpoint": "https://fernandfinch.example/poppy/browser-session"
+  }
+}
