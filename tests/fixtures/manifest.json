@@ -1,0 +1,25 @@
+{
+  "valid": {
+    "spec-example.json": "The example document from section 3 of the 1.0 spec",
+    "website-only.json": "The smallest valid document: a website agents may browse",
+    "apis-only.json": "OpenAPI and MCP, with browsing turned off",
+    "signed-in-agent.json": "Sign-in, scopes, versions, and extensions",
+    "ucp-shop.json": "A UCP Ask agent with the UCP extension"
+  },
+  "invalid": {
+    "missing-protocol-version.json": "version.present",
+    "version-not-major-minor.json": "version.format",
+    "domain-with-scheme.json": "organization.domain",
+    "supported-version-on-other-host.json": "versions.supported",
+    "no-channels.json": "channels.present",
+    "http-agent-endpoint.json": "agent.protocols",
+    "ucp-entry-without-extension.json": "agent.ucp",
+    "api-missing-description.json": "apis.entries",
+    "web-disabled-with-endpoint.json": "web.disabled",
+    "bad-scope-hints.json": "auth.scope-hints",
+    "auth-disabled-with-signed-in.json": "auth.disabled-conflicts",
+    "extension-not-a-list.json": "extensions.shape",
+    "operations-without-browser-join.json": "operations.browser-join",
+    "mediated-sign-in-missing-fields.json": "mediated.fields"
+  }
+}
