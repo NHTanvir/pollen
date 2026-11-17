@@ -66,11 +66,11 @@ export function formatText(report: Report, options: TextOptions = {}): string {
     );
     if (report.ok) {
         const extra = warnings > 0 ? ` Fix the ${plural(warnings, "warning")} to reach 100.` : "";
-        lines.push(`${paint("green", "PASS")}  Personal Agents can use this document.${extra}`);
+        lines.push(`${paint("green", "PASS")}  Poppy ${report.spec_version} Personal Agents can use this document.${extra}`);
     } else if (!report.results.some((r) => r.group !== "Transport" && r.status !== "skip")) {
         lines.push(`${paint("red", "FAIL")}  There's no document Personal Agents can read here.`);
     } else {
-        lines.push(`${paint("red", "FAIL")}  Fix the ${plural(errors, "error")} above. Personal Agents won't use this document until then.`);
+        lines.push(`${paint("red", "FAIL")}  Fix the ${plural(errors, "error")} above before Poppy ${report.spec_version} Personal Agents can use this document.`);
     }
     return `${lines.join("\n")}\n`;
 }

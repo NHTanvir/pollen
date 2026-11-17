@@ -7,7 +7,7 @@ import { fetchFollowing, parseJson, type Fetcher } from "./fetch.js";
 import { RULES } from "./rules/index.js";
 import { SPEC_VERSION, WELL_KNOWN_PATH } from "./spec.js";
 import type { Context, Report, Rule, RuleResult, Summary } from "./types.js";
-import { hostOf, isDomain, isObject } from "./util.js";
+import { hostOf, isDomain, isObject, majorOf } from "./util.js";
 import { VERSION } from "./version.js";
 
 export interface CheckOptions {
@@ -73,8 +73,11 @@ export async function check(input: string, options: CheckOptions = {}): Promise<
     if (http.status === 200 && !http.error && http.body !== undefined) readText(ctx, http.body);
 
     const org = ctx.doc && isObject(ctx.doc.organization) ? ctx.doc.organization : undefined;
+    const otherVersion = versionSkip(ctx);
     if (!ctx.doc) {
         ctx.oauthSkipped = ctx.raw === undefined ? "No document was retrieved." : "No JSON object to check.";
+    } else if (otherVersion) {
+        ctx.oauthSkipped = otherVersion;
     } else if (options.skipOAuth) {
         ctx.oauthSkipped = "Skipped with --skip-oauth.";
     } else if (!org || !isDomain(org.domain)) {
@@ -107,6 +110,14 @@ function readText(ctx: Context, raw: string): void {
     if (ctx.parsed.ok && isObject(ctx.parsed.value)) ctx.doc = ctx.parsed.value;
 }
 
+/** Why the 1.0 rules don't apply: the document declares a version that isn't 1.x. */
+function versionSkip(ctx: Context): string | undefined {
+    const value = ctx.doc?.protocol_version;
+    const major = majorOf(value);
+    if (major === undefined || major === 1) return undefined; // version.present and version.format report bad values
+    return `protocol_version is ${String(value)}: Pollen applies the ${SPEC_VERSION} rules only to 1.x documents.`;
+}
+
 function skipReason(rule: Rule, ctx: Context): string | undefined {
     switch (rule.stage) {
         case "transport":
@@ -114,10 +125,11 @@ function skipReason(rule: Rule, ctx: Context): string | undefined {
         case "parse":
             return ctx.raw === undefined ? "No document was retrieved." : undefined;
         case "document":
-            if (ctx.doc) return undefined;
-            return ctx.raw === undefined ? "No document was retrieved." : "No JSON object to check.";
+            if (!ctx.doc) return ctx.raw === undefined ? "No document was retrieved." : "No JSON object to check.";
+            return rule.allVersions ? undefined : versionSkip(ctx);
         case "oauth":
             if (ctx.oauth) return undefined;
+            if (versionSkip(ctx)) return versionSkip(ctx);
             if (ctx.mode === "file") return "Local file: OAuth metadata is checked only against a live URL.";
             return ctx.oauthSkipped ?? "OAuth metadata wasn't fetched.";
     }
