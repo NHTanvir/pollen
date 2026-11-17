@@ -131,7 +131,7 @@ export interface Report {
     mode: "url" | "file";
     /** URL mode: where the document was finally served from. */
     final_url?: string;
-    /** 0-100. Weighted share of applicable rules that passed. */
+    /** 0-100: 100, minus 25 per failed error rule and 5 per failed warning. 0 with no document. */
     score: number;
     /** False when any error-severity rule failed. */
     ok: boolean;
