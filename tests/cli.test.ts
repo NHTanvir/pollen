@@ -52,7 +52,8 @@ describe("pollen", () => {
     it("--help lists every command and exits 0", async () => {
         const { code, stdout } = await run(["--help"]);
         assert.equal(code, 0);
-        for (const text of ["pollen check", "pollen init", "pollen demo", "--json", "--skip-oauth"]) assert.ok(stdout.includes(text), text);
+        for (const text of ["pollen check", "pollen init", "pollen demo", "--json", "--skip-oauth", "npx github:NHTanvir/pollen"]) assert.ok(stdout.includes(text), text);
+        assert.ok(!stdout.includes("@nhtanvir/pollen"), "help must not point to an unpublished npm package");
     });
 
     it("exits 2 with usage when there's no command, an unknown command, or a bad flag", async () => {

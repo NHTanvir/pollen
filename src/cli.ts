@@ -28,9 +28,11 @@ Init options
   --force            Overwrite an existing file
 
 Examples
-  npx @nhtanvir/pollen check example.com
-  npx @nhtanvir/pollen check https://example.com --json
-  npx @nhtanvir/pollen check ./public/.well-known/poppy.json
+  pollen check example.com
+  pollen check https://example.com --json
+  pollen check ./public/.well-known/poppy.json
+
+Run it without installing: npx github:NHTanvir/pollen check example.com
 
 Exit codes: 0 = passed, 1 = failed, 2 = usage error.
 Spec: https://personalagentprotocol.org/docs/1.0/spec#discovery
