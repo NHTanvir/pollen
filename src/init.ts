@@ -156,12 +156,15 @@ export interface InitOptions {
     force: boolean;
     input: NodeJS.ReadableStream;
     output: NodeJS.WritableStream;
+    /** Where errors go. Default process.stderr. */
+    errors?: NodeJS.WritableStream;
 }
 
 export async function runInit(options: InitOptions): Promise<number> {
     const say = (line: string) => options.output.write(`${line}\n`);
+    const errors = options.errors ?? process.stderr;
     if (existsSync(options.out) && !options.force) {
-        process.stderr.write(`pollen: ${options.out} already exists. Use --force to overwrite it, or --out to pick another path.\n`);
+        errors.write(`pollen: ${options.out} already exists. Use --force to overwrite it, or --out to pick another path.\n`);
         return 2;
     }
     say(`pollen init: a starter poppy.json for Personal Agent Protocol ${SPEC_VERSION}.`);
@@ -173,7 +176,7 @@ export async function runInit(options: InitOptions): Promise<number> {
     } catch (error) {
         if (error instanceof InitAborted) {
             say("");
-            process.stderr.write(`pollen: ${error.message}; nothing was written.\n`);
+            errors.write(`pollen: ${error.message}; nothing was written.\n`);
             return 2;
         }
         throw error;
