@@ -1,0 +1,19 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "auth": {
+    "scopes": {
+      "orders:read": "See your orders"
+    },
+    "scope_hints": {
+      "orders:read": {
+        "changes": "sometimes",
+        "personal_data": "yes"
+      }
+    }
+  },
+  "web": {}
+}
