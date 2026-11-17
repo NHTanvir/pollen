@@ -1,0 +1,16 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "web": {},
+  "extensions": {
+    "operations": [
+      {
+        "version": "3",
+        "endpoint": "https://fernandfinch.example/poppy/operations"
+      }
+    ]
+  }
+}
