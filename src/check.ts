@@ -20,8 +20,11 @@ export interface CheckOptions {
 
 export type Target = { mode: "file"; path: string; notes: string[] } | { mode: "url"; url: string; notes: string[] };
 
-/** Weight of a rule in the score. Errors count for more than warnings. */
-export const WEIGHTS = { error: 10, warning: 3 } as const;
+/**
+ * Points a failed rule costs. The score starts at 100 and never drops below 0, so 100 means nothing
+ * failed, and the cost of a mistake doesn't depend on how big the document is.
+ */
+export const PENALTIES = { error: 25, warning: 5 } as const;
 
 /**
  * Works out what the user meant: an existing file, a URL, or a bare domain. A URL with no path, or
@@ -136,15 +139,11 @@ function runRule(rule: Rule, ctx: Context): RuleResult {
 }
 
 export function score(results: RuleResult[]): number {
-    let total = 0;
-    let earned = 0;
+    let points = 100;
     for (const result of results) {
-        if (result.status === "skip") continue;
-        const weight = WEIGHTS[result.severity];
-        total += weight;
-        if (result.status === "pass") earned += weight;
+        if (result.status === "fail") points -= PENALTIES[result.severity];
     }
-    return total === 0 ? 0 : Math.floor((100 * earned) / total);
+    return Math.max(0, points);
 }
 
 function evaluate(ctx: Context, notes: string[]): Report {
