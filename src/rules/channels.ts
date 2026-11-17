@@ -1,7 +1,7 @@
-// Sections 3.1, 6, 7, 8.1 and 9: the channels a Company offers (agent, apis, web) and tasks.
+// Sections 3.1, 6, 7, 8.1 and 9, and UCP 5: the channels a Company offers (agent, apis, web) and tasks.
 
-import { ACCESS_VALUES, API_TYPES, CONVERSATION_TYPES } from "../spec.js";
-import { Problems, describe, isObject, show } from "../util.js";
+import { ACCESS_VALUES, API_TYPES, CONVERSATION_TYPES, UCP_PROFILE_PATH } from "../spec.js";
+import { Problems, describe, isDomain, isHttpsUrl, isObject, show } from "../util.js";
 import { defineRule, docOf, fail, pass, skip } from "./define.js";
 
 export const channelsPresent = defineRule(
@@ -60,10 +60,10 @@ export const agentProtocols = defineRule(
     },
 );
 
-export const agentPoppy = defineRule(
+export const agentKnownType = defineRule(
     {
-        id: "agent.poppy",
-        title: 'agent.protocols includes a "poppy" entry',
+        id: "agent.known-type",
+        title: 'agent.protocols has a "poppy" or "ucp" entry',
         group: "Channels",
         stage: "document",
         severity: "warning",
@@ -76,9 +76,46 @@ export const agentPoppy = defineRule(
         const types = agent.protocols.map((entry) => (isObject(entry) ? show(entry.type) : "?")).join(", ");
         return fail(
             "agent.protocols",
-            `no entry has a type Personal Agents know (${types}). They skip unfamiliar types, so none will reach your Company Agent`,
-            'Add an entry with "type": "poppy", the conversation protocol defined in spec section 8.',
+            `no entry has a conversation type Personal Agents know (${types}). They skip unfamiliar types, so none will reach your Company Agent`,
+            'Use "type": "poppy", the conversation protocol in spec section 8, or "ucp" for UCP Ask with the UCP extension.',
         );
+    },
+);
+
+export const agentUcp = defineRule(
+    {
+        id: "agent.ucp",
+        title: 'ucp entries point at the UCP profile and list the "ucp" extension',
+        group: "Channels",
+        stage: "document",
+        severity: "error",
+        section: "UCP 5",
+    },
+    (ctx) => {
+        const doc = docOf(ctx);
+        const agent = doc.agent;
+        if (!isObject(agent) || !Array.isArray(agent.protocols)) return skip("No agent.protocols list.");
+        const entries = agent.protocols.map((entry, i) => [entry, i] as const).filter(([entry]) => isObject(entry) && entry.type === "ucp");
+        if (entries.length === 0) return skip('No "ucp" entries.');
+        const problems = new Problems();
+        if (!isObject(doc.extensions) || doc.extensions.ucp === undefined) {
+            problems.add("extensions", 'a Company that lists a "ucp" conversation entry must list the "ucp" extension', 'Add "ucp": [ { "version": "1" } ] to extensions.');
+        }
+        const org = doc.organization;
+        const domain = isObject(org) && isDomain(org.domain) ? org.domain.toLowerCase() : undefined;
+        for (const [entry, i] of entries) {
+            const endpoint = (entry as Record<string, unknown>).endpoint;
+            if (!domain || !isHttpsUrl(endpoint)) continue; // agent.protocols and organization.domain report these
+            const url = new URL(endpoint);
+            if (url.host.toLowerCase() !== domain || url.pathname !== UCP_PROFILE_PATH || url.search !== "") {
+                problems.add(
+                    `agent.protocols[${i}].endpoint`,
+                    `a "ucp" entry's endpoint is the Company's UCP profile, https://${domain}${UCP_PROFILE_PATH}, not ${show(endpoint)}`,
+                    `Set it to "https://${domain}${UCP_PROFILE_PATH}". Personal Agents find Ask's own endpoint from the profile.`,
+                );
+            }
+        }
+        return problems.outcome;
     },
 );
 
@@ -231,4 +268,4 @@ export const tasksEndpoint = defineRule(
     },
 );
 
-export const channelRules = [channelsPresent, agentProtocols, agentPoppy, agentAccess, apisEntries, apisTypes, webFields, webDisabled, tasksEndpoint];
+export const channelRules = [channelsPresent, agentProtocols, agentKnownType, agentUcp, agentAccess, apisEntries, apisTypes, webFields, webDisabled, tasksEndpoint];
