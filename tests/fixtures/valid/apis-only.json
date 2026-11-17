@@ -1,0 +1,26 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Lumen Bank",
+    "domain": "lumen.example",
+    "logo_uri": "https://lumen.example/logo.svg"
+  },
+  "apis": [
+    {
+      "type": "openapi",
+      "url": "https://api.lumen.example/openapi.json",
+      "description": "Accounts, balances, and transfers"
+    },
+    {
+      "type": "mcp",
+      "url": "https://mcp.lumen.example/mcp",
+      "description": "Branch and ATM finder"
+    }
+  ],
+  "web": {
+    "disabled": true
+  },
+  "tasks": {
+    "endpoint": "https://api.lumen.example/poppy/tasks"
+  }
+}
