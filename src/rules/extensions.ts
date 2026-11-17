@@ -1,8 +1,8 @@
-// Section 3.3 and the Mediated Sign-In extension.
+// Section 3.3, and what the Operations and Mediated Sign-In extensions require of poppy.json.
 
 import { DEFINED_EXTENSIONS, MEDIATED_SIGN_IN, MEDIATED_SIGN_IN_REMOVAL, RESERVED_FIELD_NAMES } from "../spec.js";
 import { Problems, SCOPE_TOKEN, describe, isDomain, isObject, show } from "../util.js";
-import { defineRule, docOf, fail, skip } from "./define.js";
+import { defineRule, docOf, fail, pass, skip } from "./define.js";
 
 export const extensionsShape = defineRule(
     {
@@ -72,6 +72,63 @@ export const extensionsNames = defineRule(
     },
 );
 
+export const extensionsVersions = defineRule(
+    {
+        id: "extensions.versions",
+        title: "defined extensions include their 1.0 version",
+        group: "Extensions",
+        stage: "document",
+        severity: "warning",
+        section: "Extensions index",
+    },
+    (ctx) => {
+        const extensions = docOf(ctx).extensions;
+        if (!isObject(extensions)) return skip("No extensions object.");
+        const problems = new Problems();
+        let seen = false;
+        for (const [name, current] of Object.entries(DEFINED_EXTENSIONS)) {
+            const entries = extensions[name];
+            if (!Array.isArray(entries)) continue;
+            const versions = entries.flatMap((entry) => (isObject(entry) && typeof entry.version === "string" ? [entry.version] : []));
+            if (versions.length === 0) continue; // extensions.shape reports this
+            seen = true;
+            if (!versions.includes(current)) {
+                problems.add(
+                    `extensions["${name}"]`,
+                    `lists version ${versions.map(show).join(", ")}, but Poppy 1.0 defines ${name} version "${current}", and an extension is used only at a version both sides support`,
+                    `Add an entry with "version": "${current}" (keep older entries while Personal Agents move over).`,
+                );
+            }
+        }
+        if (!seen) return skip("No extensions defined with the protocol.");
+        return problems.outcome;
+    },
+);
+
+export const operationsBrowserJoin = defineRule(
+    {
+        id: "operations.browser-join",
+        title: "an operations endpoint comes with web.browser_session_endpoint",
+        group: "Extensions",
+        stage: "document",
+        severity: "error",
+        section: "Operations 2",
+    },
+    (ctx) => {
+        const doc = docOf(ctx);
+        const entries = isObject(doc.extensions) ? doc.extensions.operations : undefined;
+        if (!Array.isArray(entries)) return skip("operations isn't listed.");
+        const i = entries.findIndex((entry) => isObject(entry) && entry.endpoint !== undefined);
+        if (i === -1) return skip("No operations endpoint: the website handles approval itself.");
+        if (isObject(doc.web) && doc.web.browser_session_endpoint !== undefined) return pass;
+        return fail(
+            `extensions["operations"][${i}].endpoint`,
+            "an operations endpoint means your website returns operations, and only a browser joined to a Session gets them, so web.browser_session_endpoint is required",
+            "Add web.browser_session_endpoint, or remove the operations endpoint if your website handles approval itself.",
+        );
+    },
+);
+
 export const mediatedSignIn = defineRule(
     {
         id: "mediated.fields",
@@ -79,7 +136,7 @@ export const mediatedSignIn = defineRule(
         group: "Extensions",
         stage: "document",
         severity: "error",
-        section: "Mediated Sign-In",
+        section: "Mediated Sign-In 2",
     },
     (ctx) => {
         const extensions = docOf(ctx).extensions;
@@ -145,4 +202,4 @@ export const mediatedSignInTransitional = defineRule(
     },
 );
 
-export const extensionRules = [extensionsShape, extensionsNames, mediatedSignIn, mediatedSignInTransitional];
+export const extensionRules = [extensionsShape, extensionsNames, extensionsVersions, operationsBrowserJoin, mediatedSignIn, mediatedSignInTransitional];
