@@ -1,0 +1,20 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Tidepool Goods",
+    "domain": "tidepool.example"
+  },
+  "agent": {
+    "protocols": [
+      {
+        "type": "ucp",
+        "endpoint": "https://tidepool.example/.well-known/ucp",
+        "description": "Questions about our products, policies, orders, and carts"
+      }
+    ]
+  },
+  "web": {},
+  "extensions": {
+    "ucp": [{ "version": "1" }]
+  }
+}
