@@ -1,0 +1,62 @@
+name: Pollen poppy.json Validator
+description: Fail CI when a site's /.well-known/poppy.json breaks the Personal Agent Protocol (Poppy 1.0). PASS/FAIL per rule, with fixes.
+author: NHTanvir
+
+branding:
+  icon: check-circle
+  color: yellow
+
+inputs:
+  target:
+    description: The site to check (a domain or URL, such as example.com), or a path to a poppy.json file in the repository.
+    required: true
+  skip-oauth:
+    description: Set to "true" to skip fetching the OAuth protected resource and authorization server metadata.
+    required: false
+    default: "false"
+  timeout:
+    description: Per-request timeout, in milliseconds.
+    required: false
+    default: "10000"
+
+outputs:
+  exit-code:
+    description: 0 if the document passed, 1 if it failed, 2 for a usage error.
+    value: ${{ steps.check.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Pollen
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        npm ci --ignore-scripts --no-audit --no-fund --loglevel=error
+        npm run build --silent
+
+    - name: Check poppy.json
+      id: check
+      shell: bash
+      env:
+        POLLEN_CLI: ${{ github.action_path }}/dist/src/cli.js
+        POLLEN_TARGET: ${{ inputs.target }}
+        POLLEN_SKIP_OAUTH: ${{ inputs.skip-oauth }}
+        POLLEN_TIMEOUT: ${{ inputs.timeout }}
+      run: |
+        args=(check "$POLLEN_TARGET" --no-color --timeout "$POLLEN_TIMEOUT")
+        if [ "$POLLEN_SKIP_OAUTH" = "true" ]; then args+=(--skip-oauth); fi
+        report="$RUNNER_TEMP/pollen-report.txt"
+        set +e
+        node "$POLLEN_CLI" "${args[@]}" > "$report" 2>&1
+        status=$?
+        set -e
+        cat "$report"
+        echo "exit-code=$status" >> "$GITHUB_OUTPUT"
+        {
+          if [ "$status" = "0" ]; then echo "### ✅ poppy.json passed"; else echo "### ❌ poppy.json failed"; fi
+          echo
+          echo '```'
+          cat "$report"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        exit "$status"

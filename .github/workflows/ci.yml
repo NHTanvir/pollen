@@ -37,3 +37,26 @@ jobs:
             if (files.some((f) => f.startsWith("dist/tests/"))) { console.error("tests compiled into the package"); process.exit(1); }
             console.log(files.length + " files, all present");
           '
+
+  action:
+    name: GitHub Action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Passes a valid document
+        uses: ./
+        with:
+          target: tests/fixtures/valid/spec-example.json
+      - name: Fails a broken document
+        id: broken
+        continue-on-error: true
+        uses: ./
+        with:
+          target: tests/fixtures/invalid/web-disabled-with-endpoint.json
+      - name: The broken document must fail with exit code 1
+        env:
+          OUTCOME: ${{ steps.broken.outcome }}
+          EXIT_CODE: ${{ steps.broken.outputs.exit-code }}
+        run: |
+          echo "outcome=$OUTCOME exit-code=$EXIT_CODE"
+          test "$OUTCOME" = "failure" && test "$EXIT_CODE" = "1"
