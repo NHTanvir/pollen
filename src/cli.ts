@@ -3,6 +3,8 @@
 
 import { parseArgs } from "node:util";
 import { check, TargetError } from "./check.js";
+import { runDemo } from "./demo.js";
+import { runInit } from "./init.js";
 import { formatJson, formatText } from "./report.js";
 import { VERSION } from "./version.js";
 
@@ -83,6 +85,14 @@ export async function main(argv: string[]): Promise<number> {
                 if (error instanceof TargetError) return usage(error.message);
                 throw error;
             }
+        }
+        case "init": {
+            if (rest.length !== 0) return usage("init takes no arguments. Use --out <path> to choose where to write.");
+            return runInit({ out: values.out ?? "poppy.json", force: values.force === true, input: process.stdin, output: process.stdout });
+        }
+        case "demo": {
+            if (rest.length !== 0) return usage("demo takes no arguments.");
+            return runDemo({ color, write: (text) => process.stdout.write(text) });
         }
         default:
             return usage(`Unknown command "${command}".`);
