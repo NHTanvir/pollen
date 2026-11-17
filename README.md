@@ -3,6 +3,7 @@
 **Check any site's `/.well-known/poppy.json` against Poppy 1.0 in one command: PASS or FAIL for every rule, a 0–100 score, and the exact fix for each failure.**
 
 [![CI](https://github.com/NHTanvir/pollen/actions/workflows/ci.yml/badge.svg)](https://github.com/NHTanvir/pollen/actions/workflows/ci.yml)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Pollen%20poppy.json%20Validator-2ea44f?logo=github)](https://github.com/marketplace/actions/pollen-poppy-json-validator)
 [![Poppy 1.0](https://img.shields.io/badge/Poppy-1.0-ffb000)](https://personalagentprotocol.org/docs/1.0/spec)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js 18+](https://img.shields.io/badge/node-18%2B-339933)](package.json)
@@ -166,7 +167,7 @@ Runs Pollen against the bundled example documents, with no network: 5 that pass,
 
 ## GitHub Action
 
-Fail the build when your deployed `poppy.json` breaks:
+Listed on the GitHub Marketplace as [Pollen poppy.json Validator](https://github.com/marketplace/actions/pollen-poppy-json-validator). Fail the build when your deployed `poppy.json` breaks:
 
 ```yaml
 name: poppy.json
