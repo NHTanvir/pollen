@@ -1,0 +1,16 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "agent": {
+    "protocols": [
+      {
+        "type": "ucp",
+        "endpoint": "https://fernandfinch.example/.well-known/ucp",
+        "description": "Questions about our breads and cakes"
+      }
+    ]
+  }
+}
