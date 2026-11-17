@@ -1,0 +1,11 @@
+{
+  "protocol_version": "1.0",
+  "supported_versions": {
+    "0.4": "https://cdn.elsewhere.example/poppy-0.4.json"
+  },
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "web": {}
+}
