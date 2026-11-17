@@ -9,6 +9,7 @@
   "invalid": {
     "missing-protocol-version.json": "version.present",
     "version-not-major-minor.json": "version.format",
+    "pre-1.0-version.json": "version.compatible",
     "domain-with-scheme.json": "organization.domain",
     "supported-version-on-other-host.json": "versions.supported",
     "no-channels.json": "channels.present",

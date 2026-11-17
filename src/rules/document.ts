@@ -1,7 +1,8 @@
 // Section 3.1 and 3.4: protocol_version, organization, and supported_versions.
 
-import { SPEC_VERSION } from "../spec.js";
-import { Problems, VERSION_PATTERN, describe, hostOf, isDomain, isObject, show } from "../util.js";
+import { CHANGELOG_URL, SPEC_VERSION } from "../spec.js";
+import { Problems, VERSION_PATTERN, describe, hostOf, isDomain, isHttpsUrl, isObject, majorOf, show } from "../util.js";
+import { VERSION } from "../version.js";
 import { defineRule, docOf, fail, pass, skip } from "./define.js";
 
 export const versionPresent = defineRule(
@@ -12,6 +13,7 @@ export const versionPresent = defineRule(
         stage: "document",
         severity: "error",
         section: "3.1",
+        allVersions: true,
     },
     (ctx) => {
         const value = docOf(ctx).protocol_version;
@@ -34,6 +36,7 @@ export const versionFormat = defineRule(
         stage: "document",
         severity: "error",
         section: "3.1",
+        allVersions: true,
     },
     (ctx) => {
         const value = docOf(ctx).protocol_version;
@@ -48,25 +51,34 @@ export const versionFormat = defineRule(
 export const versionCompatible = defineRule(
     {
         id: "version.compatible",
-        title: "protocol_version is a 1.x version",
+        title: "protocol_version is compatible with 1.0",
         group: "Document",
         stage: "document",
-        severity: "warning",
+        severity: "error",
         section: "3.4",
+        allVersions: true,
     },
     (ctx) => {
-        const value = docOf(ctx).protocol_version;
-        if (typeof value !== "string" || !VERSION_PATTERN.test(value)) return skip("protocol_version isn't valid; see version.format.");
-        const major = Number(value.split(".")[0]);
+        const doc = docOf(ctx);
+        const value = doc.protocol_version;
+        const major = majorOf(value);
+        if (major === undefined) return skip("protocol_version isn't valid; see version.format.");
         if (major === 1) return pass;
+        // A 1.0 Personal Agent uses a 1.x document that supported_versions lists instead (spec 3.4).
+        const versions = doc.supported_versions;
+        if (isObject(versions) && Object.entries(versions).some(([v, url]) => majorOf(v) === 1 && isHttpsUrl(url))) return pass;
         if (major === 0) {
             return fail(
                 "protocol_version",
-                `${value} is a pre-1.0 draft. Before 1.0, versions are compatible only with the same minor version, so only Personal Agents that implement exactly ${value} will use this document`,
-                `Update the document to ${SPEC_VERSION}, the current published version. Keep the old one in supported_versions if you still serve it.`,
+                `${value} is a pre-1.0 draft. Before 1.0, a version is compatible only with the same minor version, so a Personal Agent that implements only ${SPEC_VERSION} must not use this document. Pollen checks ${SPEC_VERSION} documents, so it skipped the field rules`,
+                `Publish a ${SPEC_VERSION} document: set protocol_version to "${SPEC_VERSION}" and apply the changes since ${value} in the changelog (${CHANGELOG_URL}). To keep serving ${value} as well, move it to another URL and list it in supported_versions. If your platform generates poppy.json for you, it has to make this change.`,
             );
         }
-        return fail("protocol_version", `${value} is newer than any published version; Pollen checks against ${SPEC_VERSION}`, `Check the version. The current published version is ${SPEC_VERSION}.`);
+        return fail(
+            "protocol_version",
+            `${value} is a newer major version than ${SPEC_VERSION}, and Pollen ${VERSION} checks only 1.x documents, so it skipped the field rules`,
+            `Check the version, or use a Pollen release that supports ${major}.x.`,
+        );
     },
 );
 
@@ -195,6 +207,7 @@ export const supportedVersions = defineRule(
         stage: "document",
         severity: "error",
         section: "3.4",
+        allVersions: true,
     },
     (ctx) => {
         const doc = docOf(ctx);

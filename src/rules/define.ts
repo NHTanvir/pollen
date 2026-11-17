@@ -9,6 +9,7 @@ interface RuleSpec {
     stage: Stage;
     severity: Severity;
     section: string;
+    allVersions?: boolean;
 }
 
 export function defineRule(spec: RuleSpec, check: (ctx: Context) => Outcome): Rule {

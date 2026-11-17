@@ -31,6 +31,11 @@ export function isDomain(value: unknown): value is string {
 
 export const VERSION_PATTERN = /^[0-9]+\.[0-9]+$/;
 
+/** The major version of a major.minor string, or undefined if it isn't one. */
+export function majorOf(value: unknown): number | undefined {
+    return typeof value === "string" && VERSION_PATTERN.test(value) ? Number(value.split(".")[0]) : undefined;
+}
+
 /** Scope tokens, RFC 6749 §3.3. */
 export const SCOPE_TOKEN = /^[\x21\x23-\x5B\x5D-\x7E]+$/;
 

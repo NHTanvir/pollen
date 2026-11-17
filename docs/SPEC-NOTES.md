@@ -177,6 +177,26 @@ because there's no host to fetch them from.
 - Each `supported_versions` URL MUST be HTTPS on the host that served `poppy.json`.
 - Keys are `major.minor`, and name versions *other* than `protocol_version`.
 
+### How Pollen treats other versions
+
+Pollen's rules are the 1.0 rules, and versions before 1.0 differ in breaking ways. For example,
+`agent.protocols[].description` became required in 1.0 (changelog, "Conversation protocol
+descriptions", breaking), so a valid 0.4 document fails the 1.0 field rules. So:
+
+- A document whose `protocol_version` isn't 1.x fails `version.compatible` (an error): before 1.0 a
+  version is compatible only with the same minor version, so a Personal Agent that implements only
+  1.0 MUST NOT use it (3.4).
+- Unless `supported_versions` lists a 1.x document: a 1.0 Personal Agent uses that one instead, so
+  `version.compatible` passes. Pollen doesn't fetch that document yet.
+- Either way, the 1.0 field rules and OAuth checks are skipped for a non-1.x document. Only the
+  rules for what 3.4 says keeps its meaning in every version still run: the location and fetching
+  of `poppy.json`, `protocol_version`, and `supported_versions`.
+- A missing or malformed `protocol_version` fails `version.present` or `version.format`, and the
+  1.0 rules still run, since there's no other version to judge by.
+
+Found in the wild: Shopify publishes a `poppy.json` for every store, and on 2026-11-17 the ones
+checked declared `0.4` with agent entries that have no `description`.
+
 ## Score
 
 Not part of the spec; Pollen's own measure. The score starts at 100. Each failed error rule costs

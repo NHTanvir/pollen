@@ -102,6 +102,12 @@ export interface Rule {
     section: string;
     /** Absolute URL of the section in the spec. */
     specUrl: string;
+    /**
+     * Runs whatever protocol_version says. Spec 3.4: the document's location and fetching,
+     * protocol_version, and supported_versions keep their meaning in every version. Other
+     * document and OAuth rules are 1.0 rules, and only run on 1.x documents.
+     */
+    allVersions?: boolean;
     check(ctx: Context): Outcome;
 }
 

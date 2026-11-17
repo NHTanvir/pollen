@@ -104,8 +104,13 @@ const CASES: Record<string, Case[]> = {
     "version.compatible": [
         { name: "1.0", run: () => offline(base()), expect: "pass" },
         { name: "1.1 (draft minor)", run: () => offline(make((d) => (d.protocol_version = "1.1"))), expect: "pass" },
+        {
+            name: "0.4 that lists a 1.0 document in supported_versions",
+            run: () => offline(make((d) => ((d.protocol_version = "0.4"), (d.supported_versions = { "1.0": `${ORIGIN}/poppy/1.0.json` })))),
+            expect: "pass",
+        },
         { name: "0.4 (pre-1.0)", run: () => offline(make((d) => (d.protocol_version = "0.4"))), expect: "fail", match: /pre-1\.0/ },
-        { name: "2.0 (unknown major)", run: () => offline(make((d) => (d.protocol_version = "2.0"))), expect: "fail", match: /newer than any published/ },
+        { name: "2.0 (unknown major)", run: () => offline(make((d) => (d.protocol_version = "2.0"))), expect: "fail", match: /newer major version/ },
         { name: "malformed", run: () => offline(make((d) => (d.protocol_version = "one"))), expect: "skip" },
     ],
     "organization.present": [

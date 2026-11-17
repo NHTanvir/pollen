@@ -23,7 +23,7 @@ describe("formatText", () => {
         const text = formatText(broken());
         assert.match(text, /Score 70\/100 {3}\d+ passed · 1 error · 1 warning · \d+ skipped/);
         assert.match(text, /FAIL {2}Fix the 1 error above/);
-        assert.match(formatText(offline(base())), /PASS {2}Personal Agents can use this document\.\n$/);
+        assert.match(formatText(offline(base())), /PASS {2}Poppy 1\.0 Personal Agents can use this document\.\n$/);
     });
 
     it("says when there's no document at all", async () => {

@@ -14,6 +14,7 @@ export const AUTHORIZATION_SERVER_PATH = "/.well-known/oauth-authorization-serve
 export const SPEC_BASE = "https://personalagentprotocol.org/docs/1.0/spec";
 export const EXTENSIONS_BASE = "https://personalagentprotocol.org/docs/1.0/extensions";
 export const ROADMAP_URL = "https://personalagentprotocol.org/docs/introduction#mediated-sign-in";
+export const CHANGELOG_URL = "https://personalagentprotocol.org/docs/changelog";
 
 /** Spec section number to its anchor on the spec page. */
 export const SECTION_ANCHORS: Record<string, string> = {
