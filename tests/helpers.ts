@@ -61,7 +61,13 @@ export function fakeFetcher(routes: Record<string, Route>, log: string[] = []): 
         if (route.error) throw route.error;
         if (route.hang) {
             return new Promise<Response>((_, reject) => {
-                init.signal.addEventListener("abort", () => reject(init.signal.reason));
+                // A real hanging request holds a socket open, which keeps the process alive until the
+                // timeout fires. AbortSignal.timeout's own timer doesn't (it's unref'd), so hold one.
+                const socket = setInterval(() => undefined, 1_000);
+                init.signal.addEventListener("abort", () => {
+                    clearInterval(socket);
+                    reject(init.signal.reason);
+                });
             });
         }
         const body = route.body === undefined ? null : typeof route.body === "string" ? route.body : JSON.stringify(route.body);
