@@ -30,9 +30,18 @@ export const SECTION_ANCHORS: Record<string, string> = {
     "9": "task-coverage",
 };
 
+/** Sections of extension pages and other docs that rules cite, by the label the report shows. */
+export const DOC_SECTIONS: Record<string, string> = {
+    "Extensions index": `${EXTENSIONS_BASE}#list`,
+    "Mediated Sign-In 2": `${EXTENSIONS_BASE}/mediated-sign-in#support`,
+    "Operations 2": `${EXTENSIONS_BASE}/operations#support`,
+    "UCP 5": `${EXTENSIONS_BASE}/ucp#conversations`,
+    Roadmap: ROADMAP_URL,
+};
+
 export function specUrl(section: string): string {
-    if (section === "Mediated Sign-In") return `${EXTENSIONS_BASE}/mediated-sign-in`;
-    if (section === "Roadmap") return ROADMAP_URL;
+    const doc = DOC_SECTIONS[section];
+    if (doc) return doc;
     const anchor = SECTION_ANCHORS[section];
     return anchor ? `${SPEC_BASE}#${anchor}` : SPEC_BASE;
 }
@@ -40,8 +49,11 @@ export function specUrl(section: string): string {
 /** API types defined in section 7. Personal Agents skip others. */
 export const API_TYPES = ["openapi", "mcp"] as const;
 
-/** Conversation protocol types defined in section 8.1. */
-export const CONVERSATION_TYPES = ["poppy"] as const;
+/** Conversation protocol types: "poppy" from section 8.1, and "ucp" from the UCP extension (UCP 5). */
+export const CONVERSATION_TYPES = ["poppy", "ucp"] as const;
+
+/** Where a "ucp" agent entry must point: the UCP profile on organization.domain (UCP 2, 5). */
+export const UCP_PROFILE_PATH = "/.well-known/ucp";
 
 /** Values of agent.protocols[].access defined in section 3.2. */
 export const ACCESS_VALUES = ["session", "signed_in"] as const;
