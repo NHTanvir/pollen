@@ -1,0 +1,21 @@
+{
+  "protocol_version": "1.0",
+  "organization": {
+    "name": "Fern & Finch Bakery",
+    "domain": "fernandfinch.example"
+  },
+  "auth": {
+    "issuer": "https://auth.fernandfinch.example",
+    "disabled": true
+  },
+  "agent": {
+    "protocols": [
+      {
+        "type": "poppy",
+        "endpoint": "https://api.fernandfinch.example/poppy/conversations",
+        "description": "Orders, pickups, and allergens",
+        "access": "signed_in"
+      }
+    ]
+  }
+}
