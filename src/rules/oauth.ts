@@ -4,7 +4,7 @@
 import { authorizationServers } from "../discover.js";
 import { GRANT_AUTHORIZATION_CODE, GRANT_DEVICE_CODE, GRANT_REFRESH, MEDIATED_SIGN_IN, MEDIATED_SIGN_IN_GRANT } from "../spec.js";
 import type { Context, OAuthDiscovery } from "../types.js";
-import { Problems, describe, isObject, show, type Json } from "../util.js";
+import { Problems, describe, isHttpsUrl, isObject, show, type Json } from "../util.js";
 import { listsMediatedSignIn, signedInPaths } from "./auth.js";
 import { defineRule, docOf, fail, pass, skip } from "./define.js";
 
@@ -65,9 +65,10 @@ export const resourceMatches = defineRule(
         const oauth = oauthOf(ctx);
         const json = oauth.resourceMetadataJson;
         if (oauth.resourceMetadata.status !== 200 || !json?.ok || !isObject(json.value)) return skip("No protected resource metadata.");
-        const expected = `https://${domainOf(ctx)}`;
+        const expected = `https://${domainOf(ctx).toLowerCase()}`;
         const resource = json.value.resource;
-        if (resource === expected) return pass;
+        // Exactly the domain: no path or trailing slash. Hosts compare ignoring case (spec 3.1).
+        if (typeof resource === "string" && resource.toLowerCase() === expected) return pass;
         return fail(
             `${oauth.resourceMetadataUrl} → resource`,
             resource === undefined ? "resource is missing" : `resource is ${show(resource)}, but must be exactly ${show(expected)}`,
@@ -100,6 +101,9 @@ export const issuerSelection = defineRule(
         }
         const servers = authorizationServers(oauth) ?? [];
         const problems = new Problems();
+        servers.forEach((server, i) => {
+            if (!isHttpsUrl(server)) problems.add(`${prm}[${i}]`, `${show(server)} isn't an HTTPS issuer URL`, "List each issuer as an https:// URL.");
+        });
 
         if (servers.length === 0) {
             const why = status === 404 ? "there's no protected resource metadata (404)" : "the protected resource metadata lists no authorization server";
@@ -214,6 +218,47 @@ export const serverEndpoints = defineRule(
     },
 );
 
+export const scopesSupported = defineRule(
+    {
+        id: "oauth.scopes-supported",
+        title: "Scopes in poppy.json are listed in scopes_supported",
+        group: "OAuth metadata",
+        stage: "oauth",
+        severity: "warning",
+        section: "3.2",
+    },
+    (ctx) => {
+        const doc = docOf(ctx);
+        const oauth = oauthOf(ctx);
+        const meta = serverMetadata(oauth);
+        if (!meta) return skip("No authorization server metadata.");
+        if (isObject(doc.auth) && doc.auth.disabled === true) return skip("auth.disabled: sign-in is off.");
+        const named = new Set<string>();
+        if (isObject(doc.auth) && isObject(doc.auth.scopes)) for (const name of Object.keys(doc.auth.scopes)) named.add(name);
+        const mediated = isObject(doc.extensions) ? doc.extensions[MEDIATED_SIGN_IN] : undefined;
+        if (Array.isArray(mediated)) {
+            for (const entry of mediated) {
+                if (isObject(entry) && Array.isArray(entry.scopes)) for (const scope of entry.scopes) if (typeof scope === "string") named.add(scope);
+            }
+        }
+        if (named.size === 0) return skip("poppy.json names no scopes.");
+        const supported = new Set<string>();
+        const collect = (list: unknown) => {
+            if (Array.isArray(list)) for (const scope of list) if (typeof scope === "string") supported.add(scope);
+        };
+        collect(meta.scopes_supported);
+        const prm = oauth.resourceMetadataJson;
+        if (oauth.resourceMetadata.status === 200 && prm?.ok && isObject(prm.value)) collect(prm.value.scopes_supported);
+        const missing = [...named].filter((scope) => !supported.has(scope));
+        if (missing.length === 0) return pass;
+        return fail(
+            `${oauth.serverMetadataUrl} → scopes_supported`,
+            `${missing.map(show).join(", ")} ${missing.length === 1 ? "is" : "are"} named in poppy.json but not in scopes_supported, in either the issuer's metadata or the protected resource metadata`,
+            "List every scope a Personal Agent can request in scopes_supported, in one or both metadata documents.",
+        );
+    },
+);
+
 export const signInGrant = defineRule(
     {
         id: "oauth.sign-in-grant",
@@ -247,7 +292,7 @@ export const mediatedGrant = defineRule(
         group: "OAuth metadata",
         stage: "oauth",
         severity: "error",
-        section: "Mediated Sign-In",
+        section: "Mediated Sign-In 2",
     },
     (ctx) => {
         const doc = docOf(ctx);
@@ -265,4 +310,14 @@ export const mediatedGrant = defineRule(
     },
 );
 
-export const oauthRules = [resourceMetadata, resourceMatches, issuerSelection, serverMetadataIssuer, protectedResources, serverEndpoints, signInGrant, mediatedGrant];
+export const oauthRules = [
+    resourceMetadata,
+    resourceMatches,
+    issuerSelection,
+    serverMetadataIssuer,
+    protectedResources,
+    serverEndpoints,
+    scopesSupported,
+    signInGrant,
+    mediatedGrant,
+];
